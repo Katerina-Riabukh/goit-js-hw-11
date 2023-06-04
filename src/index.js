@@ -3,14 +3,23 @@ import Notiflix from 'notiflix';
 import SimpleLightbox from "simplelightbox";
 
  
-
-
 const API_KEY = "36945687-a4e7966ed6349b63eadd861cc"
 const PATH = "https://pixabay.com/api/"
 
 const form = document.querySelector('.search-form')
 const gallery = document.querySelector('.gallery')
+const BtnLoadmore = document.querySelector('.load-more')
+BtnLoadmore.classList.add('is-hidden')
 
+
+Notiflix.Notify.init({
+  width: '480px',
+  position: 'center-top',
+  distance: '60px',
+  opacity: 1,
+  timeout: 3000,
+  fontSize: '18px'
+});
 
 axios.defaults.baseURL = "https://pixabay.com/api/"
 
@@ -18,22 +27,34 @@ form.addEventListener('submit', onFormSubmit)
 
 
 function onFormSubmit(event) {
-    event.preventDefault()
-    //console.log(event.currentTarget.elements);
-    const keyword = event.currentTarget.elements.searchQuery.value
-    console.log(keyword);
-}
+  event.preventDefault()
+  gallery.innerHTML = '';
 
-
-const keyword = 'лев'
-const params = {
+  const keyword = event.currentTarget.elements.searchQuery.value.trim();
+  const params = {
     key :' API_KEY ',
     q: `${keyword}`,
     image_type: 'photo',
     orientation: 'horizontal',
     safesearch: true,
-}
+  }
 
+  fetchImages(keyword, params).then((data) => {
+    console.log(data);
+    galleruMarcap(data.hits)
+    if (data.total !== 0) {
+     Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+    } else {
+      return error;
+    }
+    
+  }).catch((error) => {
+        Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
+  }).finally(() => {
+      form.reset()
+  })
+  
+}
 
 async function fetchImages(keyword, params) {
     try {
@@ -57,36 +78,12 @@ async function fetchImages(keyword, params) {
   }
 
 
-fetchImages(keyword, params).then((data) => {
-    galleruMarcap(data.hits)
-    if (data.totalHits > 0 ) {
-        Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
-    }
-    
-}).catch((error) => {
-     Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
-})
-
-
-// fetch("https://pixabay.com/api/?key=" + API_KEY + "&" + params + "").then((responce) => {
-//     return responce.json()
-// }).then((query) => {
-//     console.log(query);
-//     galleruMarcap(query.hits)
-// }).catch((error) => {
-//    // console.log("Sorry, there are no images matching your search query. Please try again.");
-//      Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
-// })
-
-
-
-
 function galleruMarcap(query){
   
-    const marcap = query.map(({webformatURL, largeImageUR, tags, likes, views, comments, downloads}) => {
+  const marcap = query.map(({webformatURL, largeImageUR, tags, likes, views, comments, downloads}) => {
        
         return `<div class="photo-card">
-  <img src="${webformatURL}" alt="" loading="lazy" />
+ <a href ="${largeImageUR}"> <img src="${webformatURL}" alt="${tags}" loading="lazy" /></a>
   <div class="info">
     <p class="info-item">
       <b>Likes</b>
@@ -110,3 +107,47 @@ function galleruMarcap(query){
     gallery.insertAdjacentHTML('afterbegin', marcap)
 }
 
+
+
+
+
+
+
+
+
+
+// Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+
+
+
+// const keyword = 'лев'
+// const params = {
+//     key :' API_KEY ',
+//     q: `${keyword}`,
+//     image_type: 'photo',
+//     orientation: 'horizontal',
+//     safesearch: true,
+// }
+
+
+
+// fetchImages(keyword, params).then((data) => {
+//     galleruMarcap(data.hits)
+//     if (data.totalHits > 0 ) {
+//         Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+//     }
+    
+// }).catch((error) => {
+//      Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
+// })
+
+
+// fetch("https://pixabay.com/api/?key=" + API_KEY + "&" + params + "").then((responce) => {
+//     return responce.json()
+// }).then((query) => {
+//     console.log(query);
+//     galleruMarcap(query.hits)
+// }).catch((error) => {
+//    // console.log("Sorry, there are no images matching your search query. Please try again.");
+//      Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
+// })
