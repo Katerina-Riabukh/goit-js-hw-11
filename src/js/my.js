@@ -2,6 +2,11 @@ import axios from "axios";
 import Notiflix from 'notiflix';
 import SimpleLightbox from "simplelightbox";
 import refs from "./refs";
+import { PixabayAPI } from "./PixabayAPI";
+
+const pixabayApi = new PixabayAPI;
+
+
 
  
 const API_KEY = "36945687-a4e7966ed6349b63eadd861cc"
@@ -25,66 +30,35 @@ axios.defaults.baseURL = "https://pixabay.com/api/"
 refs.form.addEventListener('submit', onFormSubmit)
 
 
-function onFormSubmit(event) {
+async function onFormSubmit(event) {
   event.preventDefault()
   refs.gallery.innerHTML = '';
 
   const keyword = event.currentTarget.elements.searchQuery.value.trim();
-  const params = {
-    key :' API_KEY ',
-    q: `${keyword}`,
-    image_type: 'photo',
-    orientation: 'horizontal',
-    safesearch: true,
-    page: 1,
-    per_page: 40,
+ console.log(keyword);
+ 
+  try {
+    const response = await pixabayApi.fetchImagesByQuery(keyword)
+   
+    onPagination(response)
+    galleruMarcap(response);
+    
+     if (response.data.total !== 0) {
+       Notiflix.Notify.success(`Hooray! We found ${response.data.totalHits} images.`);
+     }else {
+       return error;
+    }
 
+  } catch (error) {
+    Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
   }
 
-  fetchImagesByQuery(keyword, params).then((data) => {
-    console.log(data);
-    galleruMarcap(data.hits)
-    if (data.total !== 0) {
-      Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
-      //BtnLoadmore.classList.remove('is-hidden')
-    } else {
-      return error;
-    }
-  
-    
-  }).catch((error) => {
-        Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
-  }).finally(() => {
-      refs.form.reset()
-  })
-  
+
+   refs.form.reset()
 }
 
-async function fetchImagesByQuery(keyword, params) {
-    try {
-        const { data } = await axios({
-            params: {
-            key : API_KEY,
-            q: `${keyword}`,
-            image_type: 'photo',
-            orientation: 'horizontal',
-            safesearch: true,
-            }
-        });
-        
-        return data;
-        
-    }
-    catch (error) {
-     Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
-    } 
-      
-  }
-
-
-function galleruMarcap(query){
-  
-  const marcap = query.map(({webformatURL, largeImageUR, tags, likes, views, comments, downloads}) => {
+function galleruMarcap({data:{hits}}){
+  const marcap = hits.map(({webformatURL, largeImageUR, tags, likes, views, comments, downloads}) => {
        
         return `<div class="photo-card">
  <a href ="${largeImageUR}"> <img class ='gellary-img'src="${webformatURL}" alt="${tags}" loading="lazy" /></a>
@@ -112,12 +86,44 @@ function galleruMarcap(query){
 }
 
 
+function onPagination(response) {
+  console.log(response.config.params);
+  console.log(refs.BtnLoadmore);
+ 
+  let page = response.config.params.page
+  console.log(page);
+  
+  if (response.data.totalHits > response.config.params.per_page) {
+    refs.BtnLoadmore.classList.remove('is-hidden')
+    return
+  } else {
+    refs.BtnLoadmore.classList.add('is-hidden')
+  }
+
+}
 
 
 
 
+ //  fetchImagesByQuery(keyword, params).then((data) => {
+  //   console.log(data);
+  //   galleruMarcap(data.hits)
+  //   if (data.total !== 0) {
+  //     Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+  //     //BtnLoadmore.classList.remove('is-hidden')
+  //   } else {
+  //     return error;
+  //   }
+  
+  // }).catch((error) => {
+  //       Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
+  // }).finally(() => {
+  //     refs.form.reset()
+  // })
+ 
 
 
+ //refs.BtnLoadmore.classList.remove('is-hidden')
 
 
 // Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
