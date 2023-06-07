@@ -6,15 +6,8 @@ import { PixabayAPI } from "./PixabayAPI";
 
 const pixabayApi = new PixabayAPI;
 
-
-
- 
 const API_KEY = "36945687-a4e7966ed6349b63eadd861cc"
 const PATH = "https://pixabay.com/api/"
-
-// const form = document.querySelector('.search-form')
-// const gallery = document.querySelector('.gallery')
-// const BtnLoadmore = document.querySelector('.load-more')
 
 Notiflix.Notify.init({
   width: '480px',
@@ -29,17 +22,24 @@ axios.defaults.baseURL = "https://pixabay.com/api/"
 
 refs.form.addEventListener('submit', onFormSubmit)
 
+let page = 1;
+let keyword = ''
 
 async function onFormSubmit(event) {
   event.preventDefault()
+  refs.BtnLoadmore.classList.add('is-hidden')
   refs.gallery.innerHTML = '';
+  page = 1;
+ keyword = event.currentTarget.elements.searchQuery.value.trim();
 
-  const keyword = event.currentTarget.elements.searchQuery.value.trim();
- console.log(keyword);
- 
+  if (keyword === '') {
+    refs.BtnLoadmore.classList.add('is-hidden')
+   return
+ }
+  
   try {
-    const response = await pixabayApi.fetchImagesByQuery(keyword)
-   
+    const response = await pixabayApi.fetchImagesByQuery(keyword, page)
+    
     onPagination(response)
     galleruMarcap(response);
     
@@ -82,16 +82,13 @@ function galleruMarcap({data:{hits}}){
   </div>
 </div>`
     }).join('')
-    refs.gallery.insertAdjacentHTML('afterbegin', marcap)
+    refs.gallery.insertAdjacentHTML('beforeend', marcap)
 }
 
 
 function onPagination(response) {
-  console.log(response.config.params);
-  console.log(refs.BtnLoadmore);
- 
-  let page = response.config.params.page
-  console.log(page);
+
+  page = response.config.params.page
   
   if (response.data.totalHits > response.config.params.per_page) {
     refs.BtnLoadmore.classList.remove('is-hidden')
@@ -99,65 +96,33 @@ function onPagination(response) {
   } else {
     refs.BtnLoadmore.classList.add('is-hidden')
   }
+ 
+}
 
+refs.BtnLoadmore.addEventListener('click', changePage)
+ 
+async function changePage() {
+
+  page +=1
+  try {
+    const response = await pixabayApi.fetchImagesByQuery(keyword, page)
+    galleruMarcap(response);
+    console.log(response.data.hits.length);
+    if (response.data.hits.length < response.config.params.per_page) {
+      refs.BtnLoadmore.classList.add('is-hidden')
+      Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
+    }
+    
+  } catch (error){Notiflix.Notify.failure("Ooops! Something wrong! Please reload the page.")}
+    
 }
 
 
+// const { height: cardHeight } = document
+//   .querySelector(".gallery")
+//   .firstElementChild.getBoundingClientRect();
 
-
- //  fetchImagesByQuery(keyword, params).then((data) => {
-  //   console.log(data);
-  //   galleruMarcap(data.hits)
-  //   if (data.total !== 0) {
-  //     Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
-  //     //BtnLoadmore.classList.remove('is-hidden')
-  //   } else {
-  //     return error;
-  //   }
-  
-  // }).catch((error) => {
-  //       Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
-  // }).finally(() => {
-  //     refs.form.reset()
-  // })
- 
-
-
- //refs.BtnLoadmore.classList.remove('is-hidden')
-
-
-// Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
-
-
-
-// const keyword = 'лев'
-// const params = {
-//     key :' API_KEY ',
-//     q: `${keyword}`,
-//     image_type: 'photo',
-//     orientation: 'horizontal',
-//     safesearch: true,
-// }
-
-
-
-// fetchImages(keyword, params).then((data) => {
-//     galleruMarcap(data.hits)
-//     if (data.totalHits > 0 ) {
-//         Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
-//     }
-    
-// }).catch((error) => {
-//      Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
-// })
-
-
-// fetch("https://pixabay.com/api/?key=" + API_KEY + "&" + params + "").then((responce) => {
-//     return responce.json()
-// }).then((query) => {
-//     console.log(query);
-//     galleruMarcap(query.hits)
-// }).catch((error) => {
-//    // console.log("Sorry, there are no images matching your search query. Please try again.");
-//      Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
-// })
+// window.scrollBy({
+//   top: cardHeight * 2,
+//   behavior: "smooth",
+// });

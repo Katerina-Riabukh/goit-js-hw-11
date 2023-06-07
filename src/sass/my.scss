@@ -52,9 +52,18 @@ input{
     margin-left: 20px;
     margin-bottom: 10px;
     font-size: 24px;
+    font-weight: 700;
+    text-transform: capitalize;
     border-radius: 10px;
     border: none;
-
+}
+input:hover,
+input:focus,
+.form-button:hover,
+.form-button:focus{
+   background-color: rgb(241, 238, 181);
+   border: none;
+   color: rgb(139, 88, 183) ;
 }
 
 .search-form{
@@ -64,16 +73,19 @@ input{
 
 .form-button{
     font-size: 24px;
+    font-weight: 700;
     border-radius: 10px;
     border: none;
+    cursor: pointer;
     
 }
 
 .load-more{
      font-size: 24px;
+     font-weight: 700;
     width: 100%;
     border-radius: 10px;
     background-color:rgb(139, 88, 183) ;
-    color: aliceblue;
+    color: rgb(241, 238, 181);
     cursor: pointer;
 }
