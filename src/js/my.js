@@ -1,20 +1,20 @@
 import axios from "axios";
 import Notiflix from 'notiflix';
-import SimpleLightbox from "simplelightbox";
+import SimpleLightbox from "simplelightbox/src/simple-lightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
 import refs from "./refs";
 import { PixabayAPI } from "./PixabayAPI";
 
-const pixabayApi = new PixabayAPI;
+const lightbox = new SimpleLightbox('.gallery a', { animationSpeed: 150});
 
-const API_KEY = "36945687-a4e7966ed6349b63eadd861cc"
-const PATH = "https://pixabay.com/api/"
+const pixabayApi = new PixabayAPI;
 
 Notiflix.Notify.init({
   width: '480px',
   position: 'center-top',
   distance: '60px',
   opacity: 1,
-  timeout: 3000,
+  timeout: 2000,
   fontSize: '18px'
 });
 
@@ -58,10 +58,10 @@ async function onFormSubmit(event) {
 }
 
 function galleruMarcap({data:{hits}}){
-  const marcap = hits.map(({webformatURL, largeImageUR, tags, likes, views, comments, downloads}) => {
-       
+  const marcap = hits.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => {
+ 
         return `<div class="photo-card">
- <a href ="${largeImageUR}"> <img class ='gellary-img'src="${webformatURL}" alt="${tags}" loading="lazy" /></a>
+ <a href ="${largeImageURL}"><img class ='gallery-img' src="${webformatURL}" alt="${tags}" loading="lazy" /></a>
   <div class="info">
     <p class="info-item">
       <b>Likes</b>
@@ -107,7 +107,14 @@ async function changePage() {
   try {
     const response = await pixabayApi.fetchImagesByQuery(keyword, page)
     galleruMarcap(response);
-    console.log(response.data.hits.length);
+    const { height: cardHeight } = document
+  .querySelector(".gallery")
+  .firstElementChild.getBoundingClientRect();
+
+window.scrollBy({
+  top: cardHeight * 2,
+  behavior: "smooth",
+});
     if (response.data.hits.length < response.config.params.per_page) {
       refs.BtnLoadmore.classList.add('is-hidden')
       Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
@@ -116,13 +123,3 @@ async function changePage() {
   } catch (error){Notiflix.Notify.failure("Ooops! Something wrong! Please reload the page.")}
     
 }
-
-
-// const { height: cardHeight } = document
-//   .querySelector(".gallery")
-//   .firstElementChild.getBoundingClientRect();
-
-// window.scrollBy({
-//   top: cardHeight * 2,
-//   behavior: "smooth",
-// });
