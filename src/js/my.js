@@ -111,9 +111,6 @@ async function changePage() {
   try {
     const response = await pixabayApi.fetchImagesByQuery(keyword, page)
    
-    console.log(response.config.params.per_page);
-    console.log(response.data.hits.length);
-    console.log(page);
     galleruMarcap(response);
    lightbox.refresh()
    const { height: cardHeight } = document
