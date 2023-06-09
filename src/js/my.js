@@ -1,6 +1,6 @@
 import axios from "axios";
 import Notiflix from 'notiflix';
-import SimpleLightbox from "simplelightbox/src/simple-lightbox";
+import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 import refs from "./refs";
 import { PixabayAPI } from "./PixabayAPI";
@@ -42,7 +42,6 @@ async function onFormSubmit(event) {
   
   try {
     const response = await pixabayApi.fetchImagesByQuery(keyword, page)
-     //console.log(response.data);
     onPagination(response)
     galleruMarcap(response);
     lightbox.refresh()
@@ -114,7 +113,7 @@ async function changePage() {
    
     console.log(response.config.params.per_page);
     console.log(response.data.hits.length);
-    console.log(response.data.totalHits-1);
+    console.log(page);
     galleruMarcap(response);
    lightbox.refresh()
    const { height: cardHeight } = document
@@ -125,7 +124,7 @@ window.scrollBy({
   top: cardHeight * 2,
   behavior: "smooth",
 });
-    if (response.data.hits.length < response.config.params.per_page) {
+    if (response.data.hits.length < response.config.params.per_page || response.config.params.page === 13) {
       refs.BtnLoadmore.classList.add('is-hidden')
       Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
     }
