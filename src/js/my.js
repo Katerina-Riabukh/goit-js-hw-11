@@ -7,6 +7,8 @@ import { PixabayAPI } from "./PixabayAPI";
 
 const lightbox = new SimpleLightbox('.gallery a', { animationSpeed: 150});
 
+
+
 const pixabayApi = new PixabayAPI;
 
 Notiflix.Notify.init({
@@ -27,11 +29,12 @@ let keyword = ''
 
 async function onFormSubmit(event) {
   event.preventDefault()
+
   refs.BtnLoadmore.classList.add('is-hidden')
   refs.gallery.innerHTML = '';
   page = 1;
  keyword = event.currentTarget.elements.searchQuery.value.trim();
-
+   
   if (keyword === '') {
     refs.BtnLoadmore.classList.add('is-hidden')
    return
@@ -39,25 +42,26 @@ async function onFormSubmit(event) {
   
   try {
     const response = await pixabayApi.fetchImagesByQuery(keyword, page)
-    
+     //console.log(response.data);
     onPagination(response)
     galleruMarcap(response);
-    
-     if (response.data.total !== 0) {
-       Notiflix.Notify.success(`Hooray! We found ${response.data.totalHits} images.`);
-     }else {
-       return error;
+    lightbox.refresh()
+    if (response.data.total !== 0) {
+      Notiflix.Notify.success(`Hooray! We found ${response.data.totalHits} images.`);
+    } else {
+      return error;
     }
-
   } catch (error) {
     Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
   }
 
 
+   
    refs.form.reset()
 }
 
-function galleruMarcap({data:{hits}}){
+function galleruMarcap({ data: { hits } }) {
+  
   const marcap = hits.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => {
  
         return `<div class="photo-card">
@@ -82,32 +86,38 @@ function galleruMarcap({data:{hits}}){
   </div>
 </div>`
     }).join('')
-    refs.gallery.insertAdjacentHTML('beforeend', marcap)
+  refs.gallery.insertAdjacentHTML('beforeend', marcap)
+  
 }
 
 
 function onPagination(response) {
 
   page = response.config.params.page
-  
+ 
   if (response.data.totalHits > response.config.params.per_page) {
     refs.BtnLoadmore.classList.remove('is-hidden')
     return
   } else {
     refs.BtnLoadmore.classList.add('is-hidden')
   }
- 
+
 }
 
 refs.BtnLoadmore.addEventListener('click', changePage)
  
 async function changePage() {
-
+ 
   page +=1
   try {
     const response = await pixabayApi.fetchImagesByQuery(keyword, page)
+   
+    console.log(response.config.params.per_page);
+    console.log(response.data.hits.length);
+    console.log(response.data.totalHits-1);
     galleruMarcap(response);
-    const { height: cardHeight } = document
+   lightbox.refresh()
+   const { height: cardHeight } = document
   .querySelector(".gallery")
   .firstElementChild.getBoundingClientRect();
 
